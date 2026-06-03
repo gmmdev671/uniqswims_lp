@@ -39,6 +39,7 @@ dependencies:
   font_awesome_flutter: ^11.0.0
   cached_network_image: ^3.4.1
   flutter_svg: ^2.3.0
+  form_builder_validators: ^11.3.0
 
 dev_dependencies:
   flutter_test:

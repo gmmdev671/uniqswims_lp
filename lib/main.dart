@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:uniqswims_lp/widgets/professionals_section.dart';
+import 'package:uniqswims_lp/widgets/services_section.dart';
 
 // Importando widgets das seções
 import 'widgets/hero_section.dart';
@@ -6,6 +8,7 @@ import 'widgets/about_section.dart';
 import 'widgets/why_choose_widget.dart'; // Nova seção
 import 'widgets/contact_section.dart';
 import 'widgets/app_bar_hide.dart'; // AppBar que esconde ao rolar
+import 'widgets/testimonials_section.dart'; // NOVO WIDGET
 
 void main() {
   runApp(const MyApp());
@@ -87,7 +90,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
                   HeroSection(onContactPressed: _scrollToContact),
                   const AboutSection(),
                   const WhyChooseWidget(), // Nova seção adicionada
-                  ContactSection(key: _contactKey), // Identificado para navegação
+                  ServicesSection(),
+                  ProfessionalsSection(),
+                  TestimonialsSection(), // NOVA SEÇÃO DE DEPOIMENTOS
+                  ContactSection(), // Identificado para navegação
                 ],
               ),
             ),
