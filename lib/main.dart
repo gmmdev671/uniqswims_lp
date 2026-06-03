@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 // Importando widgets das seções
 import 'widgets/hero_section.dart';
 import 'widgets/about_section.dart';
-import 'widgets/features_section.dart';
+import 'widgets/why_choose_widget.dart'; // Nova seção
 import 'widgets/contact_section.dart';
 import 'widgets/app_bar_hide.dart'; // AppBar que esconde ao rolar
 
@@ -37,6 +37,7 @@ class ResponsiveAppShell extends StatefulWidget {
 
 class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _contactKey = GlobalKey(); // Para rolagem programática
 
   @override
   void initState() {
@@ -49,6 +50,14 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
     super.dispose();
   }
 
+  // Função para rolar até a seção de contato
+  void _scrollToContact() {
+    final context = _contactKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 500));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +65,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
         scrollController: _scrollController,
         title: 'UniqSwims',
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
+          IconButton(
+            onPressed: _scrollToContact,
+            icon: const Icon(Icons.email_outlined),
+          ),
         ],
       ),
       body: LayoutBuilder(
@@ -72,10 +84,10 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
               child: Column(
                 children: [
                   // Seções com widgets reais
-                  const HeroSection(),
+                  HeroSection(onContactPressed: _scrollToContact),
                   const AboutSection(),
-                  const FeaturesSection(),
-                  const ContactSection(),
+                  const WhyChooseWidget(), // Nova seção adicionada
+                  ContactSection(key: _contactKey), // Identificado para navegação
                 ],
               ),
             ),
