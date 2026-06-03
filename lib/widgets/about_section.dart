@@ -15,11 +15,7 @@ class AboutSection extends StatelessWidget {
           if (isMobile) {
             return Column(
               children: [
-                Image.asset(
-                  "assets/images/about_placeholder.png",
-                  height: 200,
-                  fit: BoxFit.contain,
-                ),
+                _buildPlaceholderImage(),
                 const SizedBox(height: 20),
                 _buildTextContent(),
               ],
@@ -29,11 +25,7 @@ class AboutSection extends StatelessWidget {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Image.asset(
-                    "assets/images/about_placeholder.png",
-                    height: 300,
-                    fit: BoxFit.contain,
-                  ),
+                  child: _buildPlaceholderImage(),
                 ),
                 const SizedBox(width: 30),
                 Expanded(flex: 1, child: _buildTextContent()),
@@ -41,6 +33,24 @@ class AboutSection extends StatelessWidget {
             );
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
+      height: 250,
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.pool,
+          size: 60,
+          color: Colors.blue,
+        ),
       ),
     );
   }
