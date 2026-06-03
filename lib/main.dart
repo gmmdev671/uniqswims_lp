@@ -5,6 +5,7 @@ import 'widgets/hero_section.dart';
 import 'widgets/about_section.dart';
 import 'widgets/features_section.dart';
 import 'widgets/contact_section.dart';
+import 'widgets/app_bar_hide.dart'; // AppBar que esconde ao rolar
 
 void main() {
   runApp(const MyApp());
@@ -51,6 +52,13 @@ class _ResponsiveAppShellState extends State<ResponsiveAppShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: HideableAppBar(
+        scrollController: _scrollController,
+        title: 'UniqSwims',
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
+        ],
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           // Determina breakpoint responsivo
