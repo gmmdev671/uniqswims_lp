@@ -40,6 +40,7 @@ class WhyChooseWidget extends StatelessWidget {
                 const SizedBox(width: 30),
                 Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: reasons
                         .map((item) => Padding(
                               padding: const EdgeInsets.only(bottom: 20),
