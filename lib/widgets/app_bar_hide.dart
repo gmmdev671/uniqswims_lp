@@ -3,76 +3,128 @@ import 'package:flutter/rendering.dart';
 
 class HideableAppBar extends StatefulWidget implements PreferredSizeWidget {
   final ScrollController scrollController;
-  final List<Widget> actions;
   final String title;
+  final List<Widget>? actions;
+  final double height;
+  final Duration duration;
 
   const HideableAppBar({
-    super.key,
+    Key? key,
     required this.scrollController,
-    required this.actions,
     required this.title,
-  });
+    this.actions,
+    this.height = kToolbarHeight,
+    this.duration = const Duration(milliseconds: 200),
+  }) : super(key: key);
 
   @override
   State<HideableAppBar> createState() => _HideableAppBarState();
 
+  // preferredSize expõe a altura "atual" estimada — o getter usa a controller.value
+  // (o Scaffold atualiza quando o widget rebuilda).
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => Size.fromHeight(height);
 }
 
-class _HideableAppBarState extends State<HideableAppBar>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+class _HideableAppBarState extends State<HideableAppBar> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  double _lastOffset = 0.0;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
-
-    widget.scrollController.addListener(_handleScroll);
+    // value = 1.0 -> fully visible; 0.0 -> hidden
+    _controller = AnimationController(vsync: this, duration: widget.duration, value: 1.0);
+    widget.scrollController.addListener(_onScroll);
   }
 
-  void _handleScroll() {
-    if (widget.scrollController.position.userScrollDirection ==
-        ScrollDirection.reverse) {
-      _animationController.forward();
-    } else if (widget.scrollController.position.userScrollDirection ==
-        ScrollDirection.forward) {
-      _animationController.reverse();
+  @override
+  void didUpdateWidget(covariant HideableAppBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.scrollController != widget.scrollController) {
+      oldWidget.scrollController.removeListener(_onScroll);
+      widget.scrollController.addListener(_onScroll);
     }
+  }
+
+  void _onScroll() {
+    // usa a direção do scroll para esconder/mostrar
+    final sc = widget.scrollController;
+    if (!sc.hasClients) return;
+
+    final offset = sc.position.pixels;
+    final direction = sc.position.userScrollDirection;
+
+    // se scroll para baixo (conteúdo sobe), esconder
+    if (direction == ScrollDirection.reverse) {
+      _controller.animateTo(0.0, curve: Curves.easeInOut);
+    } else if (direction == ScrollDirection.forward) {
+      // se scroll para cima (conteúdo desce), mostrar
+      _controller.animateTo(1.0, curve: Curves.easeInOut);
+    }
+
+    _lastOffset = offset;
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    widget.scrollController.removeListener(_handleScroll);
+    widget.scrollController.removeListener(_onScroll);
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final background = theme.colorScheme.surface;
+    final fullHeight = widget.height;
+
+    // AnimatedBuilder atualiza conforme _controller anima.
     return AnimatedBuilder(
-      animation: _animation,
+      animation: _controller,
       builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, -kToolbarHeight * (1 - _animation.value)),
-          child: Opacity(
-            opacity: _animation.value,
-            child: child,
+        // altura atualizada (0..fullHeight)
+        final currentHeight = fullHeight * _controller.value;
+
+        // Quando height é 0, retornamos SizedBox.shrink() dentro do material para evitar
+        // deixar espaço / "retângulo preto".
+        return SizedBox(
+          height: currentHeight,
+          child: Material(
+            color: background,
+            elevation: 4.0 * _controller.value, // reduz elevação quando escondido
+            child: ClipRect(
+              // ClipRect evita que conteúdo interno "vaze" ao animar a altura
+              child: Align(
+                alignment: Alignment.topCenter,
+                heightFactor: (_controller.value == 0.0) ? 0.0 : 1.0,
+                child: SafeArea(
+                  bottom: false,
+                  child: SizedBox(
+                    height: fullHeight,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(width: 16),
+                        // TÍTULO
+                        Text(
+                          widget.title,
+                          style: theme.textTheme.titleLarge?.copyWith(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w700) ??
+                              TextStyle(color: theme.colorScheme.onSurface, fontSize: 18, fontWeight: FontWeight.w700),
+                        ),
+                        const Spacer(),
+                        // ACTIONS
+                        if (widget.actions != null) ...widget.actions!,
+                        const SizedBox(width: 8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       },
-      child: AppBar(
-        title: Text(widget.title),
-        actions: widget.actions,
-        backgroundColor: Colors.white.withOpacity(0.9),
-        elevation: 2,
-      ),
     );
   }
 }

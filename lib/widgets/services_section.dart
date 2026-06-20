@@ -2,7 +2,9 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class ServicesSection extends StatelessWidget {
-  const ServicesSection({super.key});
+  final Key? sectionKey;
+
+  const ServicesSection({Key? key, this.sectionKey}) : super(key: key);
 
   // Dados de exemplo — substitua pelos dados reais quando tiver
   final List<_ServiceItem> _services = const [
@@ -10,59 +12,84 @@ class ServicesSection extends StatelessWidget {
       title: 'Pool Maintenance',
       description:
           'Serviço completo de manutenção de piscinas — limpeza, química, inspeção e manutenção preventiva.',
+      imagePath: 'assets/images/services1.jpeg',
     ),
     _ServiceItem(
       title: 'Pool Repairs',
       description:
           'Reparos especializados: bombas, filtros, vazamentos e revestimentos. Diagnóstico rápido e solução garantida.',
+      imagePath: 'assets/images/services1.jpeg',
     ),
     _ServiceItem(
       title: 'Professional Licensing',
       description:
           'Apoio e consultoria para obtenção de licenças e formação profissional para técnicos e franqueados.',
+      imagePath: 'assets/images/services1.jpeg',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final double maxWidth = constraints.maxWidth;
-      final int itemsToShow = _itemsForWidth(maxWidth);
-      final double viewportFraction = 1 / itemsToShow;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final tt = theme.textTheme;
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 32.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Divider(thickness: 2, endIndent: 300),
-            const SizedBox(height: 12),
-            const Text(
-              'Our Services',
-              style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            CarouselSlider.builder(
-              itemCount: _services.length,
-              itemBuilder: (context, index, realIndex) {
-                final service = _services[index];
-                return _ServiceCard(
-                  title: service.title,
-                  description: service.description,
-                  // placeholder widget for image
-                  placeholder: _buildPlaceholderImage(context),
-                );
-              },
-              options: CarouselOptions(
-                viewportFraction: viewportFraction,
-                enableInfiniteScroll: false,
-                enlargeCenterPage: false,
-                // Adjust height responsively
-                height: itemsToShow == 1 ? 300 : 360,
-                padEnds: false,
+    return LayoutBuilder(builder: (context, constraints) {
+      final maxWidth = constraints.maxWidth;
+      final itemsToShow = _itemsForWidth(maxWidth);
+      final viewportFraction = 1 / itemsToShow;
+      final isMobile = maxWidth < 600;
+
+      return Container(
+        key: sectionKey,
+        width: double.infinity,
+        color: cs.background,
+        padding: EdgeInsets.symmetric(
+          vertical: isMobile ? 36 : 72,
+          horizontal: isMobile ? 20 : 48,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // small underline + title
+              Container(
+                width: 64,
+                height: 4,
+                color: cs.onSurface,
+                margin: const EdgeInsets.only(bottom: 12),
               ),
-            ),
-          ],
+              Text(
+                'Our Services',
+                style: (tt.headlineMedium ?? const TextStyle(fontSize: 34, fontWeight: FontWeight.bold))
+                    .copyWith(color: cs.onSurface),
+              ),
+              const SizedBox(height: 20),
+
+              // Carousel
+              CarouselSlider.builder(
+                itemCount: _services.length,
+                itemBuilder: (context, index, realIndex) {
+                  final service = _services[index];
+                  return _ServiceCard(
+                    title: service.title,
+                    description: service.description,
+                    imagePath: service.imagePath, // passando path
+                    colorScheme: cs,
+                    textTheme: tt,
+                  );
+                },
+                options: CarouselOptions(
+                  viewportFraction: viewportFraction,
+                  enableInfiniteScroll: false,
+                  enlargeCenterPage: false,
+                  height: itemsToShow == 1 ? 340 : 380,
+                  padEnds: false,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     });
@@ -75,16 +102,26 @@ class ServicesSection extends StatelessWidget {
   }
 
   Widget _buildPlaceholderImage(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade300,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Center(
-        child: Icon(
-          Icons.image,
-          size: 48,
-          color: Colors.black38,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: ColorFiltered(
+          colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+          child: Container(
+            color: cs.surface, // fallback color
+            child: const Center(
+              child: Icon(
+                Icons.image,
+                size: 48,
+                color: Colors.white24,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -94,46 +131,78 @@ class ServicesSection extends StatelessWidget {
 class _ServiceCard extends StatelessWidget {
   final String title;
   final String description;
-  final Widget placeholder;
+  final String imagePath; // agora é o path do asset
+  final ColorScheme colorScheme;
+  final TextTheme textTheme;
 
   const _ServiceCard({
     required this.title,
     required this.description,
-    required this.placeholder,
+    required this.imagePath,
+    required this.colorScheme,
+    required this.textTheme,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Card internal padding + clickable to open modal
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
         onTap: () => _showDescriptionModal(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image area (placeholder)
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: placeholder,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.onSurface.withOpacity(0.04)),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.35), blurRadius: 14, offset: const Offset(0, 6)),
+            ],
+          ),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image area
+              SizedBox(
+                height: 180,
+                width: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: _buildImage(imagePath), // método abaixo
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
+              const SizedBox(height: 14),
+              Text(
+                title,
+                style: (textTheme.titleLarge ?? const TextStyle(fontSize: 20, fontWeight: FontWeight.w800))
+                    .copyWith(color: colorScheme.onSurface),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: (textTheme.bodyMedium ?? const TextStyle(fontSize: 14))
+                    .copyWith(color: colorScheme.onSurface.withOpacity(0.85), height: 1.5),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildImage(String cardImgPath) {
+    // Uso simples com fallback se asset não existir
+    return Image.asset(
+      cardImgPath,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        // fallback visual se não encontrar o asset
+        return Container(
+          color: colorScheme.surface,
+          child: const Center(child: Icon(Icons.broken_image, color: Colors.white24, size: 48)),
+        );
+      },
     );
   }
 
@@ -141,13 +210,17 @@ class _ServiceCard extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (context) {
+        final tt = Theme.of(context).textTheme;
         return AlertDialog(
-          title: Text(title),
-          content: SingleChildScrollView(child: Text(description)),
+          backgroundColor: colorScheme.surface,
+          title: Text(title, style: tt.titleLarge?.copyWith(color: colorScheme.onSurface)),
+          content: SingleChildScrollView(
+            child: Text(description, style: tt.bodyMedium?.copyWith(color: colorScheme.onSurface.withOpacity(0.9))),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
+              child: Text('Close', style: tt.labelLarge?.copyWith(color: colorScheme.primary)),
             ),
           ],
         );
@@ -159,9 +232,11 @@ class _ServiceCard extends StatelessWidget {
 class _ServiceItem {
   final String title;
   final String description;
+  final String imagePath;
 
   const _ServiceItem({
     required this.title,
     required this.description,
+    required this.imagePath,
   });
 }
