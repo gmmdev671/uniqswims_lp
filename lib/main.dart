@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uniqswims_lp/shared/environment.dart';
+import 'package:uniqswims_shared/uniqswims_shared.dart';
 import 'package:uniqswims_lp/uniqswims_theme.dart';
-import 'package:uniqswims_lp/widgets/footer.dart';
-import 'package:uniqswims_lp/widgets/professionals_section.dart';
-import 'package:uniqswims_lp/widgets/services_section.dart';
+import 'package:uniqswims_lp/shared/footer.dart';
+import 'package:uniqswims_lp/features/home/widgets/professionals_section.dart';
+import 'package:uniqswims_lp/features/home/widgets/services_section.dart';
 
 // Importando widgets das seções
-import 'widgets/hero_section.dart';
-import 'widgets/about_section.dart';
-import 'widgets/why_choose_widget.dart'; // Nova seção
-import 'widgets/contact_section.dart';
-import 'widgets/app_bar_hide.dart'; // AppBar que esconde ao rolar
-import 'widgets/testimonials_section.dart'; // NOVO WIDGET
+import 'features/home/widgets/hero_section.dart';
+import 'features/home/widgets/about_section.dart';
+import 'features/home/widgets/why_choose_widget.dart'; // Nova seção
+import 'features/home/widgets/contact_section.dart';
+import 'shared/app_bar_hide.dart'; // AppBar que esconde ao rolar
+import 'features/home/widgets/testimonials_section.dart'; // NOVO WIDGET
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: '.env');
+
+  await Supabase.initialize(
+    url: Environment.supabaseUrl,
+    publishableKey: Environment.supabasePublishableKey,
+  );
+
+  SharedInject.init();
+
   runApp(const MyApp());
 }
 
